@@ -7,6 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import Index from "./pages/Index";
 import Payment from "./pages/Payment";
+import HostProperty from "./pages/HostProperty";
+import UserProfile from "./pages/UserProfile";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -22,6 +25,9 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/payment" element={<Payment />} />
+            <Route path="/host-property" element={<HostProperty />} />
+            <Route path="/user-profile" element={<UserProfile />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
