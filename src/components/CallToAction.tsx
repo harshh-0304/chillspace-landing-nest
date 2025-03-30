@@ -22,8 +22,9 @@ const CallToAction = () => {
           <Button 
             variant="outline" 
             className="border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto"
+            asChild
           >
-            Learn More
+            <Link to="/">Learn More</Link>
           </Button>
         </div>
       </div>
