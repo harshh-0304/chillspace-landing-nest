@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const CallToAction = () => {
   return (
@@ -12,10 +13,16 @@ const CallToAction = () => {
           Join thousands of happy guests who have discovered their ideal space for relaxation.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in">
-          <Button className="bg-white text-chillspace-teal hover:bg-white/90 hover:text-chillspace-navy text-lg px-8 py-6 h-auto">
-            Sign Up for Free
+          <Button 
+            className="bg-white text-chillspace-teal hover:bg-white/90 hover:text-chillspace-navy text-lg px-8 py-6 h-auto"
+            asChild
+          >
+            <Link to="/payment">Book Now</Link>
           </Button>
-          <Button variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto">
+          <Button 
+            variant="outline" 
+            className="border-white text-white hover:bg-white/10 text-lg px-8 py-6 h-auto"
+          >
             Learn More
           </Button>
         </div>
