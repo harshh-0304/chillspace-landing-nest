@@ -4,11 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    navigate('/user-profile');
+  };
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-sm fixed top-0 z-50 shadow-sm">
@@ -42,7 +47,10 @@ const Navbar = () => {
               <Search className="h-5 w-5 mr-1" />
               Search
             </Button>
-            <Button className="bg-chillspace-teal hover:bg-chillspace-teal/90 text-white">
+            <Button 
+              className="bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
+              onClick={handleSignIn}
+            >
               <User className="h-5 w-5 mr-1" />
               Sign in
             </Button>
@@ -95,7 +103,13 @@ const Navbar = () => {
             <Search className="h-5 w-5 mr-2" />
             Search
           </Button>
-          <Button className="w-full bg-chillspace-teal hover:bg-chillspace-teal/90 text-white">
+          <Button 
+            className="w-full bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
+            onClick={() => {
+              handleSignIn();
+              setIsMenuOpen(false);
+            }}
+          >
             <User className="h-5 w-5 mr-2" />
             Sign in
           </Button>

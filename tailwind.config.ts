@@ -63,12 +63,12 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// ChillSpace custom colors
+				// ChillSpace custom colors - updated to darker, more elegant colors
 				chillspace: {
-					teal: "#4ECDC4",
-					navy: "#292F36",
-					sand: "#F7F7F7",
-					orange: "#FF6B6B"
+					teal: "#1A5F7A",    // Darker teal
+					navy: "#1E293B",    // Darker navy
+					sand: "#F8F9FA",    // Slightly darker sand
+					orange: "#E94E35"   // Slightly darker orange
 				}
 			},
 			borderRadius: {
