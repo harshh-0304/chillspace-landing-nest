@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,8 +11,8 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import { DateRange } from "react-day-picker";
 
-// Our mock property data - in a real app this would come from an API
 const properties = [
   {
     id: 1,
@@ -125,18 +124,15 @@ const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedDates, setSelectedDates] = useState<Date[] | undefined>([]);
+  const [selectedDates, setSelectedDates] = useState<DateRange | undefined>();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [guestCount, setGuestCount] = useState(1);
   
-  // Find the property based on the ID
   const property = properties.find(p => p.id === Number(id));
 
   useEffect(() => {
-    // Scroll to top when page loads
     window.scrollTo(0, 0);
     
-    // If property not found, redirect to home page
     if (!property && id) {
       navigate('/');
     }
@@ -147,7 +143,7 @@ const PropertyDetails = () => {
   }
 
   const handleBooking = () => {
-    if (!selectedDates || selectedDates.length < 2) {
+    if (!selectedDates || !selectedDates.from || !selectedDates.to) {
       toast({
         title: "Select dates",
         description: "Please select check-in and check-out dates",
@@ -156,17 +152,15 @@ const PropertyDetails = () => {
       return;
     }
 
-    // Calculate the number of nights
-    const start = new Date(selectedDates[0]);
-    const end = new Date(selectedDates[1]);
+    const start = new Date(selectedDates.from);
+    const end = new Date(selectedDates.to);
     const nights = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Navigate to booking page with query params
     navigate(`/booking?propertyId=${property.id}&guests=${guestCount}&checkIn=${start.toISOString().split('T')[0]}&checkOut=${end.toISOString().split('T')[0]}&nights=${nights}`);
   };
 
-  const totalPrice = (selectedDates?.length === 2)
-    ? Math.round((new Date(selectedDates[1]).getTime() - new Date(selectedDates[0]).getTime()) / (1000 * 60 * 60 * 24)) * property.price
+  const totalPrice = (selectedDates?.from && selectedDates?.to)
+    ? Math.round((new Date(selectedDates.to).getTime() - new Date(selectedDates.from).getTime()) / (1000 * 60 * 60 * 24)) * property.price
     : 0;
 
   return (
@@ -174,7 +168,6 @@ const PropertyDetails = () => {
       <Navbar />
       <main className="flex-1 pt-16 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8">
-          {/* Property title and location */}
           <div className="mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-chillspace-navy mb-2">{property.title}</h1>
             <div className="flex items-center justify-between flex-wrap">
@@ -199,7 +192,6 @@ const PropertyDetails = () => {
             </div>
           </div>
 
-          {/* Image gallery */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="relative h-64 md:h-96 overflow-hidden rounded-lg">
               <img
@@ -225,11 +217,8 @@ const PropertyDetails = () => {
             </div>
           </div>
 
-          {/* Property details and booking */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left column: Property details */}
             <div className="lg:col-span-2">
-              {/* Host and basic info */}
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-semibold text-chillspace-navy">
@@ -248,7 +237,6 @@ const PropertyDetails = () => {
                 </div>
               </div>
 
-              {/* Features */}
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
                   <BedDouble className="h-6 w-6 text-chillspace-teal mb-2" />
@@ -264,13 +252,11 @@ const PropertyDetails = () => {
                 </div>
               </div>
 
-              {/* Description */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-chillspace-navy mb-2">Description</h3>
                 <p className="text-gray-600">{property.description}</p>
               </div>
 
-              {/* Amenities */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-chillspace-navy mb-4">Amenities</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -289,7 +275,6 @@ const PropertyDetails = () => {
                 </div>
               </div>
 
-              {/* Tabs for reviews, location, etc */}
               <Tabs defaultValue="reviews" className="mt-8">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="reviews">Reviews</TabsTrigger>
@@ -369,7 +354,6 @@ const PropertyDetails = () => {
               </Tabs>
             </div>
 
-            {/* Right column: Booking card */}
             <div>
               <Card className="sticky top-24">
                 <CardContent className="pt-6">
@@ -384,14 +368,13 @@ const PropertyDetails = () => {
                   </div>
 
                   <div className="space-y-4">
-                    {/* Date picker */}
                     <div>
                       <h4 className="text-sm font-medium mb-2">Dates</h4>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button variant="outline" className="w-full justify-start text-left font-normal">
-                            {selectedDates?.length === 2
-                              ? `${selectedDates[0].toLocaleDateString()} - ${selectedDates[1].toLocaleDateString()}`
+                            {selectedDates?.from && selectedDates?.to
+                              ? `${selectedDates.from.toLocaleDateString()} - ${selectedDates.to.toLocaleDateString()}`
                               : "Select dates"}
                           </Button>
                         </PopoverTrigger>
@@ -408,7 +391,6 @@ const PropertyDetails = () => {
                       </Popover>
                     </div>
 
-                    {/* Guests */}
                     <div>
                       <h4 className="text-sm font-medium mb-2">Guests</h4>
                       <select
@@ -432,11 +414,11 @@ const PropertyDetails = () => {
                     </Button>
                     <p className="text-center text-sm text-gray-500">You won't be charged yet</p>
 
-                    {selectedDates?.length === 2 && (
+                    {selectedDates?.from && selectedDates?.to && (
                       <div className="space-y-2 pt-4">
                         <div className="flex justify-between">
                           <span className="text-gray-600">
-                            ${property.price} x {Math.round((new Date(selectedDates[1]).getTime() - new Date(selectedDates[0]).getTime()) / (1000 * 60 * 60 * 24))} nights
+                            ${property.price} x {Math.round((new Date(selectedDates.to).getTime() - new Date(selectedDates.from).getTime()) / (1000 * 60 * 60 * 24))} nights
                           </span>
                           <span>${totalPrice}</span>
                         </div>
