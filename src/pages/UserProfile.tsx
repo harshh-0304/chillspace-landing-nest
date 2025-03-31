@@ -1,11 +1,13 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Building, CalendarDays, CreditCard, Heart, MessageSquare, User } from "lucide-react";
+import { Building, CalendarDays, CreditCard, Heart, MessageSquare, User, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface Booking {
   id: string;
@@ -24,6 +26,14 @@ interface SavedProperty {
   image: string;
 }
 
+interface UserData {
+  id: string;
+  email: string;
+  name: string;
+  joined: string;
+  role: string;
+}
+
 const UserProfile = () => {
   const [bookings, setBookings] = useState<Booking[]>([
     { id: "1", propertyName: "Seaside Villa", location: "Miami, FL", dates: "May 15-20, 2023", status: "upcoming", price: 750 },
@@ -35,6 +45,54 @@ const UserProfile = () => {
     { id: "1", name: "Luxury Penthouse", location: "Los Angeles, CA", price: 350, image: "https://placeholder.svg" },
     { id: "2", name: "Cozy Cottage", location: "Portland, OR", price: 120, image: "https://placeholder.svg" },
   ]);
+
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          navigate("/signup");
+          return;
+        }
+        
+        const user = session.user;
+        
+        setUserData({
+          id: user.id,
+          email: user.email || "",
+          name: user.user_metadata?.full_name || "User",
+          joined: new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+          role: "user",
+        });
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          navigate("/signup");
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const removeSaved = (id: string) => {
     setSavedProperties(savedProperties.filter(property => property.id !== id));
@@ -48,12 +106,24 @@ const UserProfile = () => {
     );
   };
 
-  // Mock user data
-  const userData = {
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    joined: "January 2023",
-    role: "user",
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+      
+      navigate("/signup");
+    } catch (error: any) {
+      toast({
+        title: "Error signing out",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -68,18 +138,18 @@ const UserProfile = () => {
                   <div className="mx-auto bg-chillspace-teal text-white w-24 h-24 rounded-full flex items-center justify-center mb-4">
                     <User size={40} />
                   </div>
-                  <CardTitle>{userData.name}</CardTitle>
-                  <CardDescription>{userData.email}</CardDescription>
+                  <CardTitle>{loading ? "Loading..." : userData?.name}</CardTitle>
+                  <CardDescription>{loading ? "" : userData?.email}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center text-sm">
                       <User className="mr-2 h-4 w-4 text-chillspace-teal" />
-                      <span>Role: {userData.role}</span>
+                      <span>Role: {loading ? "" : userData?.role}</span>
                     </div>
                     <div className="flex items-center text-sm">
                       <CalendarDays className="mr-2 h-4 w-4 text-chillspace-teal" />
-                      <span>Member since: {userData.joined}</span>
+                      <span>Member since: {loading ? "" : userData?.joined}</span>
                     </div>
                   </div>
                   <div className="mt-6 space-y-2">
@@ -88,6 +158,14 @@ const UserProfile = () => {
                     </Button>
                     <Button variant="outline" className="w-full">
                       Change Password
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-red-500 hover:text-red-700 border-red-200 hover:bg-red-50"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
                     </Button>
                   </div>
                 </CardContent>

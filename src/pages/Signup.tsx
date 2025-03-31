@@ -30,6 +30,7 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { User, Mail, Lock, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const signupSchema = z.object({
   name: z.string().min(2, {
@@ -66,13 +67,26 @@ const Signup = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof signupSchema>) {
+  async function onSubmit(values: z.infer<typeof signupSchema>) {
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Sign up the user with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            full_name: values.name,
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
       console.log("Signup values:", values);
-      setIsLoading(false);
       
       toast({
         title: "Account created!",
@@ -80,7 +94,16 @@ const Signup = () => {
       });
       
       navigate("/user-profile");
-    }, 1500);
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast({
+        title: "Signup failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
