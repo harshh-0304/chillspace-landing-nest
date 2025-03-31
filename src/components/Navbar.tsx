@@ -33,11 +33,11 @@ const Navbar = () => {
             <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-chillspace-teal transition-colors">
               Places to stay
             </Link>
-            <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-chillspace-teal transition-colors">
-              Experiences
+            <Link to="/booking" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-chillspace-teal transition-colors">
+              Book Now
             </Link>
-            <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-chillspace-teal transition-colors">
-              About
+            <Link to="/host-property" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-chillspace-teal transition-colors">
+              Host Property
             </Link>
           </div>
 
@@ -53,6 +53,13 @@ const Navbar = () => {
             >
               <User className="h-5 w-5 mr-1" />
               Sign in
+            </Button>
+            <Button 
+              variant="outline" 
+              className="border-chillspace-teal text-chillspace-teal hover:bg-chillspace-teal/10"
+              onClick={() => navigate('/signup')}
+            >
+              Sign up
             </Button>
           </div>
 
@@ -84,18 +91,18 @@ const Navbar = () => {
             Places to stay
           </Link>
           <Link
-            to="/"
+            to="/booking"
             className="block px-3 py-4 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-chillspace-teal border-b"
             onClick={() => setIsMenuOpen(false)}
           >
-            Experiences
+            Book Now
           </Link>
           <Link
-            to="/"
+            to="/host-property"
             className="block px-3 py-4 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-chillspace-teal border-b"
             onClick={() => setIsMenuOpen(false)}
           >
-            About
+            Host Property
           </Link>
         </div>
         <div className="px-4 py-8 flex flex-col space-y-4">
@@ -112,6 +119,16 @@ const Navbar = () => {
           >
             <User className="h-5 w-5 mr-2" />
             Sign in
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full border-chillspace-teal text-chillspace-teal hover:bg-chillspace-teal/10"
+            onClick={() => {
+              navigate('/signup');
+              setIsMenuOpen(false);
+            }}
+          >
+            Sign up
           </Button>
         </div>
       </div>

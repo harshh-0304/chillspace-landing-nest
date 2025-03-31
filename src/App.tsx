@@ -11,6 +11,8 @@ import HostProperty from "./pages/HostProperty";
 import UserProfile from "./pages/UserProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import Signup from "./pages/Signup";
+import Booking from "./pages/Booking";
 
 const App = () => {
   // Create a client instance that persists across component renders
@@ -28,6 +30,8 @@ const App = () => {
             <Route path="/host-property" element={<HostProperty />} />
             <Route path="/user-profile" element={<UserProfile />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/booking" element={<Booking />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
