@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -17,7 +16,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -27,7 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Users, Home, CreditCard, Check } from "lucide-react";
+import { CalendarIcon, Users, Home, CreditCard, Check, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,8 +69,8 @@ const Booking = () => {
       setIsSubmitting(false);
       
       toast({
-        title: "Booking initiated!",
-        description: "Proceeding to payment.",
+        title: "Booking confirmed!",
+        description: "Proceeding to payment details.",
       });
       
       navigate("/payment");
@@ -84,6 +82,8 @@ const Booking = () => {
       <Navbar />
       <main className="flex-1 pt-24 pb-16 bg-gray-50">
         <div className="container mx-auto px-4">
+          <h1 className="text-3xl font-bold text-chillspace-navy mb-8 text-center">Book Your Dream Getaway</h1>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Property Details */}
             <div className="md:col-span-2">
@@ -91,50 +91,54 @@ const Booking = () => {
                 <div className="aspect-video relative bg-gray-100">
                   <img 
                     src="https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80" 
-                    alt="Modern luxury apartment" 
+                    alt="Luxury Lakeside Cabin" 
                     className="w-full h-full object-cover"
                   />
+                  <div className="absolute top-4 right-4 bg-chillspace-navy text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
+                    <Star className="h-4 w-4 mr-1 text-yellow-400" fill="currentColor" /> 4.9 (128 reviews)
+                  </div>
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold">Modern Luxury Apartment</CardTitle>
+                  <CardTitle className="text-2xl font-bold">Luxury Lakeside Cabin</CardTitle>
                   <CardDescription className="flex items-center gap-1">
-                    <Home className="h-4 w-4" /> 2 bed · 2 bath · City Center
+                    <Home className="h-4 w-4" /> 3 bed · 2 bath · Mountain View
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-lg">About this space</h3>
+                    <h3 className="font-semibold text-lg">About this retreat</h3>
                     <p className="text-gray-600">
-                      Enjoy this stunning apartment located in the heart of the city. 
-                      With modern amenities, a spacious living area, and breathtaking views, 
-                      this is the perfect spot for your next getaway.
+                      Escape to this stunning cabin nestled in the mountains with breathtaking lake views. 
+                      Perfect for a peaceful getaway, this spacious cabin offers modern amenities while 
+                      being surrounded by nature. Wake up to the sounds of birds and enjoy your coffee 
+                      on the private deck overlooking the water.
                     </p>
                     
-                    <h3 className="font-semibold text-lg">Amenities</h3>
+                    <h3 className="font-semibold text-lg">Premium Amenities</h3>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-chillspace-teal" /> WiFi
+                        <Check className="h-4 w-4 text-chillspace-teal" /> High-speed WiFi
                       </div>
                       <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-chillspace-teal" /> Air conditioning
+                        <Check className="h-4 w-4 text-chillspace-teal" /> Fireplace
                       </div>
                       <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-chillspace-teal" /> Kitchen
+                        <Check className="h-4 w-4 text-chillspace-teal" /> Full kitchen
                       </div>
                       <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-chillspace-teal" /> TV
+                        <Check className="h-4 w-4 text-chillspace-teal" /> Smart TV
                       </div>
                       <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-chillspace-teal" /> Free parking
+                        <Check className="h-4 w-4 text-chillspace-teal" /> Private parking
                       </div>
                       <div className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-chillspace-teal" /> Pool
+                        <Check className="h-4 w-4 text-chillspace-teal" /> Hot tub
                       </div>
                     </div>
                     
-                    <h3 className="font-semibold text-lg">House rules</h3>
+                    <h3 className="font-semibold text-lg">House guidelines</h3>
                     <p className="text-gray-600">
-                      Check-in after 3:00 PM. Check-out before 11:00 AM. No smoking. No pets.
+                      Check-in after 4:00 PM. Check-out before 11:00 AM. Quiet hours from 10:00 PM. No smoking. Pet friendly.
                     </p>
                   </div>
                 </CardContent>
@@ -145,9 +149,9 @@ const Booking = () => {
             <div>
               <Card className="border-none shadow-lg sticky top-24">
                 <CardHeader className="bg-chillspace-navy text-white rounded-t-lg">
-                  <CardTitle className="text-xl font-bold">$150 / night</CardTitle>
+                  <CardTitle className="text-xl font-bold">$175 / night</CardTitle>
                   <CardDescription className="text-gray-300">
-                    Complete your booking
+                    Reserve your stay
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
@@ -250,7 +254,7 @@ const Booking = () => {
                                 <Input 
                                   type="number" 
                                   min="1"
-                                  max="10"
+                                  max="6"
                                   className="pl-10" 
                                   {...field} 
                                 />
@@ -270,7 +274,7 @@ const Booking = () => {
                             <FormControl>
                               <textarea
                                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[80px]"
-                                placeholder="Any special requests or accommodations needed?"
+                                placeholder="Any special requests or accommodations needed for your stay?"
                                 {...field}
                               />
                             </FormControl>
@@ -281,20 +285,20 @@ const Booking = () => {
                       
                       <div className="pt-4 border-t">
                         <div className="flex justify-between mb-2">
-                          <span>3 nights × $150</span>
-                          <span>$450</span>
+                          <span>3 nights × $175</span>
+                          <span>$525</span>
                         </div>
                         <div className="flex justify-between mb-2">
                           <span>Cleaning fee</span>
-                          <span>$50</span>
+                          <span>$75</span>
                         </div>
                         <div className="flex justify-between mb-2">
                           <span>Service fee</span>
-                          <span>$30</span>
+                          <span>$35</span>
                         </div>
                         <div className="flex justify-between font-bold text-lg pt-2 border-t">
                           <span>Total</span>
-                          <span>$530</span>
+                          <span>$635</span>
                         </div>
                       </div>
                       
@@ -310,7 +314,7 @@ const Booking = () => {
                           </span>
                         ) : (
                           <span className="flex items-center gap-2">
-                            <CreditCard className="h-4 w-4" /> Proceed to Payment
+                            <CreditCard className="h-4 w-4" /> Reserve Now
                           </span>
                         )}
                       </Button>
@@ -318,7 +322,7 @@ const Booking = () => {
                   </Form>
                 </CardContent>
                 <CardFooter className="text-xs text-gray-500 text-center">
-                  You won't be charged yet. Final payment will be processed after booking confirmation.
+                  Your payment will be securely processed. Free cancellation up to 48 hours before check-in.
                 </CardFooter>
               </Card>
             </div>
