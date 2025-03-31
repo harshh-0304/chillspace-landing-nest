@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { MapPin, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const spaces = [
   {
@@ -42,6 +43,12 @@ const spaces = [
 ];
 
 const FeaturedSpaces = () => {
+  const navigate = useNavigate();
+
+  const handleSpaceClick = (id: number) => {
+    navigate(`/property/${id}`);
+  };
+
   return (
     <section className="py-16 bg-chillspace-sand">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -56,7 +63,11 @@ const FeaturedSpaces = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {spaces.map((space) => (
-            <Card key={space.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group animate-fade-in">
+            <Card 
+              key={space.id} 
+              className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group animate-fade-in cursor-pointer"
+              onClick={() => handleSpaceClick(space.id)}
+            >
               <div className="aspect-w-16 aspect-h-9 overflow-hidden">
                 <img
                   src={space.image}

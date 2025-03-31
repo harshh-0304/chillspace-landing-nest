@@ -5,14 +5,57 @@ import { Menu, X, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
+import { 
+  CommandDialog, 
+  CommandInput, 
+  CommandList, 
+  CommandEmpty, 
+  CommandGroup, 
+  CommandItem 
+} from "@/components/ui/command";
+
+const searchResults = [
+  { id: 1, type: "property", name: "Mountain View Cabin", location: "Aspen, Colorado" },
+  { id: 2, type: "property", name: "Beachfront Villa", location: "Malibu, California" },
+  { id: 3, type: "property", name: "Modern Downtown Loft", location: "New York, New York" },
+  { id: 4, type: "property", name: "Lakeside Cottage", location: "Lake Tahoe, Nevada" },
+  { type: "location", name: "Aspen", region: "Colorado" },
+  { type: "location", name: "Malibu", region: "California" },
+  { type: "location", name: "New York", region: "New York" },
+  { type: "location", name: "Lake Tahoe", region: "Nevada" },
+];
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
   const handleSignIn = () => {
     navigate('/user-profile');
+  };
+
+  const openSearch = () => {
+    setIsSearchOpen(true);
+  };
+
+  const filteredResults = searchQuery 
+    ? searchResults.filter(result => 
+        result.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (result.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        result.region?.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : searchResults;
+
+  const handleSearchSelect = (result: any) => {
+    setIsSearchOpen(false);
+    if (result.type === "property") {
+      navigate(`/property/${result.id}`);
+    } else {
+      // For location-based searches
+      navigate(`/search?location=${result.name}`);
+    }
   };
 
   return (
@@ -43,7 +86,7 @@ const Navbar = () => {
 
           {/* Right side buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" className="text-gray-700 hover:text-chillspace-teal">
+            <Button variant="ghost" className="text-gray-700 hover:text-chillspace-teal" onClick={openSearch}>
               <Search className="h-5 w-5 mr-1" />
               Search
             </Button>
@@ -65,6 +108,13 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden">
+            <Button 
+              variant="ghost" 
+              className="mr-2"
+              onClick={openSearch}
+            >
+              <Search className="h-5 w-5" />
+            </Button>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-chillspace-teal focus:outline-none"
@@ -106,7 +156,10 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="px-4 py-8 flex flex-col space-y-4">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={() => {
+            setIsMenuOpen(false);
+            openSearch();
+          }}>
             <Search className="h-5 w-5 mr-2" />
             Search
           </Button>
@@ -132,6 +185,46 @@ const Navbar = () => {
           </Button>
         </div>
       </div>
+
+      {/* Search Dialog */}
+      <CommandDialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+        <CommandInput 
+          placeholder="Search properties, locations..." 
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+        />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Properties">
+            {filteredResults
+              .filter(result => result.type === "property")
+              .map((result, index) => (
+                <CommandItem 
+                  key={`property-${index}`}
+                  onSelect={() => handleSearchSelect(result)}
+                >
+                  <Search className="mr-2 h-4 w-4 text-chillspace-teal" />
+                  <span>{result.name}</span>
+                  <span className="text-sm text-gray-500 ml-2">{result.location}</span>
+                </CommandItem>
+              ))}
+          </CommandGroup>
+          <CommandGroup heading="Locations">
+            {filteredResults
+              .filter(result => result.type === "location")
+              .map((result, index) => (
+                <CommandItem 
+                  key={`location-${index}`}
+                  onSelect={() => handleSearchSelect(result)}
+                >
+                  <MapPin className="mr-2 h-4 w-4 text-chillspace-teal" />
+                  <span>{result.name}</span>
+                  <span className="text-sm text-gray-500 ml-2">{result.region}</span>
+                </CommandItem>
+              ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
     </nav>
   );
 };

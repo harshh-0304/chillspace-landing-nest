@@ -2,8 +2,40 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Users, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const [searchData, setSearchData] = useState({
+    location: "",
+    checkIn: "",
+    checkOut: "",
+    guests: "1"
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setSearchData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSearch = () => {
+    if (!searchData.location) {
+      return;
+    }
+    
+    // Construct search URL with query parameters
+    const queryParams = new URLSearchParams();
+    if (searchData.location) queryParams.append('location', searchData.location);
+    if (searchData.checkIn) queryParams.append('checkIn', searchData.checkIn);
+    if (searchData.checkOut) queryParams.append('checkOut', searchData.checkOut);
+    if (searchData.guests) queryParams.append('guests', searchData.guests);
+    
+    navigate(`/search?${queryParams.toString()}`);
+  };
+
   return (
     <div className="relative min-h-[90vh] flex items-center">
       {/* Background image with overlay */}
@@ -37,8 +69,11 @@ const Hero = () => {
                 </label>
                 <input
                   type="text"
+                  name="location"
                   placeholder="Where are you going?"
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chillspace-teal"
+                  value={searchData.location}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="flex flex-col">
@@ -48,7 +83,10 @@ const Hero = () => {
                 </label>
                 <input
                   type="date"
+                  name="checkIn"
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chillspace-teal"
+                  value={searchData.checkIn}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="flex flex-col">
@@ -58,7 +96,10 @@ const Hero = () => {
                 </label>
                 <input
                   type="date"
+                  name="checkOut"
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chillspace-teal"
+                  value={searchData.checkOut}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="flex flex-col">
@@ -67,14 +108,22 @@ const Hero = () => {
                   Guests
                 </label>
                 <div className="flex">
-                  <select className="flex-grow p-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-chillspace-teal">
+                  <select 
+                    className="flex-grow p-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-chillspace-teal"
+                    name="guests"
+                    value={searchData.guests}
+                    onChange={handleInputChange}
+                  >
                     <option value="1">1 guest</option>
                     <option value="2">2 guests</option>
                     <option value="3">3 guests</option>
                     <option value="4">4 guests</option>
                     <option value="5">5+ guests</option>
                   </select>
-                  <Button className="rounded-l-none bg-chillspace-teal hover:bg-chillspace-teal/90">
+                  <Button 
+                    className="rounded-l-none bg-chillspace-teal hover:bg-chillspace-teal/90"
+                    onClick={handleSearch}
+                  >
                     <Search className="h-5 w-5" />
                   </Button>
                 </div>
