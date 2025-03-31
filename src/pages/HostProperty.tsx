@@ -24,9 +24,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Building, Home, Hotel, Upload } from "lucide-react";
+import { Building, Home, Hotel, Upload, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   propertyName: z.string().min(3, {
@@ -57,7 +60,11 @@ const propertyTypes = [
 
 const HostProperty = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,19 +78,123 @@ const HostProperty = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const filesArray = Array.from(files);
+      setSelectedFiles(filesArray);
+    }
+  };
+
+  async function uploadImages(propertyId: string): Promise<string[]> {
+    const imageUrls: string[] = [];
+    
+    if (selectedFiles.length === 0) return imageUrls;
+    
+    const totalFiles = selectedFiles.length;
+    let filesUploaded = 0;
+    
+    for (const file of selectedFiles) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${propertyId}/${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      try {
+        const { data, error } = await supabase.storage
+          .from('property-images')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+          
+        if (error) {
+          console.error('Error uploading image:', error);
+          throw error;
+        }
+        
+        // Get the public URL for the uploaded image
+        const { data: urlData } = supabase.storage
+          .from('property-images')
+          .getPublicUrl(filePath);
+          
+        imageUrls.push(urlData.publicUrl);
+        
+        // Update progress
+        filesUploaded++;
+        setUploadProgress(Math.round((filesUploaded / totalFiles) * 100));
+        
+      } catch (error) {
+        console.error('Error in image upload:', error);
+      }
+    }
+    
+    return imageUrls;
+  }
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please login to list your property.",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log(values);
+    try {
+      // First, create the property record
+      const { data: property, error: propertyError } = await supabase
+        .from('properties')
+        .insert({
+          name: values.propertyName,
+          description: values.description,
+          location: `${values.address}, ${values.city}`,
+          price: parseFloat(values.price),
+          property_type: values.propertyType,
+          owner_id: user.id,
+        })
+        .select()
+        .single();
+      
+      if (propertyError) throw propertyError;
+      
+      // Upload images if any were selected
+      if (selectedFiles.length > 0) {
+        const imageUrls = await uploadImages(property.id);
+        
+        // Update the property with image URLs
+        if (imageUrls.length > 0) {
+          const { error: updateError } = await supabase
+            .from('properties')
+            .update({ image_urls: imageUrls })
+            .eq('id', property.id);
+            
+          if (updateError) throw updateError;
+        }
+      }
+      
       toast({
         title: "Property submitted successfully!",
         description: "Your property has been added to our listing.",
       });
+      
+      // Redirect to the property page
+      navigate(`/property/${property.id}`);
+      
+    } catch (error: any) {
+      console.error('Error submitting property:', error);
+      toast({
+        title: "Submission failed",
+        description: error.message || "There was an error listing your property.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-      form.reset();
-    }, 1500);
+      setUploadProgress(0);
+    }
   }
 
   return (
@@ -228,10 +339,44 @@ const HostProperty = () => {
                     <p className="text-sm text-gray-500">
                       Drag and drop your property images here, or click to browse.
                     </p>
-                    <input type="file" className="hidden" multiple />
-                    <Button variant="outline" className="mt-4" type="button">
+                    <input 
+                      type="file" 
+                      id="property-images" 
+                      className="hidden" 
+                      multiple 
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                    <Button 
+                      variant="outline" 
+                      className="mt-4" 
+                      type="button"
+                      onClick={() => document.getElementById('property-images')?.click()}
+                    >
                       Upload Photos
                     </Button>
+                    {selectedFiles.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm text-chillspace-teal">
+                          {selectedFiles.length} {selectedFiles.length === 1 ? 'file' : 'files'} selected
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedFiles.map((file, index) => (
+                            <div key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                              {file.name.length > 15 ? `${file.name.substring(0, 12)}...` : file.name}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {uploadProgress > 0 && (
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+                        <div 
+                          className="bg-chillspace-teal h-2.5 rounded-full" 
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                    )}
                   </div>
 
                   <CardFooter className="flex justify-end px-0 pt-4">
@@ -240,7 +385,12 @@ const HostProperty = () => {
                       className="bg-chillspace-teal hover:bg-chillspace-teal/90"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Submitting..." : "List My Property"}
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Submitting...
+                        </span>
+                      ) : "List My Property"}
                     </Button>
                   </CardFooter>
                 </form>
