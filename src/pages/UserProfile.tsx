@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Building, CalendarDays, CreditCard, Heart, MessageSquare, User, LogOut 
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Booking {
   id: string;
@@ -35,43 +37,38 @@ interface UserData {
 }
 
 const UserProfile = () => {
-  const [bookings, setBookings] = useState<Booking[]>([
-    { id: "1", propertyName: "Seaside Villa", location: "Miami, FL", dates: "May 15-20, 2023", status: "upcoming", price: 750 },
-    { id: "2", propertyName: "Mountain Retreat", location: "Denver, CO", dates: "Mar 10-15, 2023", status: "completed", price: 680 },
-    { id: "3", propertyName: "Downtown Loft", location: "New York, NY", dates: "Jan 5-10, 2023", status: "cancelled", price: 980 },
-  ]);
-
-  const [savedProperties, setSavedProperties] = useState<SavedProperty[]>([
-    { id: "1", name: "Luxury Penthouse", location: "Los Angeles, CA", price: 350, image: "https://placeholder.svg" },
-    { id: "2", name: "Cozy Cottage", location: "Portland, OR", price: 120, image: "https://placeholder.svg" },
-  ]);
-
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [savedProperties, setSavedProperties] = useState<SavedProperty[]>([]);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
         
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          navigate("/signup");
+        if (!user) {
+          navigate("/login");
           return;
         }
-        
-        const user = session.user;
         
         setUserData({
           id: user.id,
           email: user.email || "",
           name: user.user_metadata?.full_name || "User",
           joined: new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-          role: "user",
+          role: user.user_metadata?.user_type || "guest",
         });
+
+        // Here you would fetch the user's actual bookings from your database
+        // For now, we'll leave the bookings array empty
+        setBookings([]);
+        
+        // Here you would fetch the user's saved properties from your database
+        setSavedProperties([]);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -80,19 +77,7 @@ const UserProfile = () => {
     };
 
     fetchUserData();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          navigate("/signup");
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
+  }, [navigate, user]);
 
   const removeSaved = (id: string) => {
     setSavedProperties(savedProperties.filter(property => property.id !== id));
@@ -108,15 +93,12 @@ const UserProfile = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      await signOut();
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
       });
-      
-      navigate("/signup");
+      navigate("/");
     } catch (error: any) {
       toast({
         title: "Error signing out",

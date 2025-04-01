@@ -1,10 +1,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search, User, MapPin } from "lucide-react";
+import { Menu, X, Search, User, MapPin, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   CommandDialog, 
   CommandInput, 
@@ -31,9 +32,15 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   const handleSignIn = () => {
     navigate('/user-profile');
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
 
   const openSearch = () => {
@@ -90,20 +97,33 @@ const Navbar = () => {
               <Search className="h-5 w-5 mr-1" />
               Search
             </Button>
-            <Button 
-              className="bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
-              onClick={handleSignIn}
-            >
-              <User className="h-5 w-5 mr-1" />
-              Sign in
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-chillspace-teal text-chillspace-teal hover:bg-chillspace-teal/10"
-              onClick={() => navigate('/signup')}
-            >
-              Sign up
-            </Button>
+            
+            {user ? (
+              <Button 
+                className="bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
+                onClick={handleSignIn}
+              >
+                <User className="h-5 w-5 mr-1" />
+                My Profile
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  className="bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
+                  onClick={() => navigate('/login')}
+                >
+                  <User className="h-5 w-5 mr-1" />
+                  Sign in
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="border-chillspace-teal text-chillspace-teal hover:bg-chillspace-teal/10"
+                  onClick={() => navigate('/signup')}
+                >
+                  Sign up
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -163,26 +183,55 @@ const Navbar = () => {
             <Search className="h-5 w-5 mr-2" />
             Search
           </Button>
-          <Button 
-            className="w-full bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
-            onClick={() => {
-              handleSignIn();
-              setIsMenuOpen(false);
-            }}
-          >
-            <User className="h-5 w-5 mr-2" />
-            Sign in
-          </Button>
-          <Button 
-            variant="outline" 
-            className="w-full border-chillspace-teal text-chillspace-teal hover:bg-chillspace-teal/10"
-            onClick={() => {
-              navigate('/signup');
-              setIsMenuOpen(false);
-            }}
-          >
-            Sign up
-          </Button>
+          
+          {user ? (
+            <>
+              <Button 
+                className="w-full bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
+                onClick={() => {
+                  handleSignIn();
+                  setIsMenuOpen(false);
+                }}
+              >
+                <User className="h-5 w-5 mr-2" />
+                My Profile
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full border-red-300 text-red-500 hover:bg-red-50"
+                onClick={() => {
+                  handleSignOut();
+                  setIsMenuOpen(false);
+                }}
+              >
+                <LogOut className="h-5 w-5 mr-2" />
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                className="w-full bg-chillspace-teal hover:bg-chillspace-teal/90 text-white"
+                onClick={() => {
+                  navigate('/login');
+                  setIsMenuOpen(false);
+                }}
+              >
+                <User className="h-5 w-5 mr-2" />
+                Sign in
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full border-chillspace-teal text-chillspace-teal hover:bg-chillspace-teal/10"
+                onClick={() => {
+                  navigate('/signup');
+                  setIsMenuOpen(false);
+                }}
+              >
+                Sign up
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
