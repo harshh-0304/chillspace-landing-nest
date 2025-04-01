@@ -50,6 +50,7 @@ const loginSchema = z.object({
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [emailConfirmationMessage, setEmailConfirmationMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast: uiToast } = useToast();
   const { user, isLoading: authLoading, signIn } = useAuth();
@@ -77,6 +78,7 @@ const Login = () => {
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
+    setEmailConfirmationMessage(null);
     
     try {
       console.log('Login form submitted:', values);
@@ -85,6 +87,15 @@ const Login = () => {
       const { error } = await signIn(values.email, values.password);
 
       if (error) {
+        console.log('Login error code:', (error as any).code);
+        
+        // Handle specific error cases
+        if ((error as any).code === 'email_not_confirmed') {
+          setEmailConfirmationMessage(
+            "Please check your email to confirm your account before logging in. If you don't see the email, check your spam folder."
+          );
+        }
+        
         throw error;
       }
 
@@ -127,6 +138,12 @@ const Login = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
+              {emailConfirmationMessage && (
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-300 text-amber-800 rounded-md">
+                  {emailConfirmationMessage}
+                </div>
+              )}
+              
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
