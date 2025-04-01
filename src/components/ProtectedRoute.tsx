@@ -23,7 +23,9 @@ const ProtectedRoute = ({
   useEffect(() => {
     // If the route requires specific roles, check if user has them
     if (user) {
+      // Get user type from localStorage or user metadata
       const userType = localStorage.getItem('userType') || user.user_metadata?.user_type || 'guest';
+      console.log('Protected route check - User type:', userType);
       
       if (adminOnly && userType !== 'admin') {
         toast.error("You don't have permission to access this page");

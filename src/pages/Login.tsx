@@ -44,14 +44,14 @@ const loginSchema = z.object({
   password: z.string().min(1, {
     message: "Password is required.",
   }),
-  userType: z.enum(["guest", "host"]).optional(),
+  userType: z.enum(["guest", "host"]).default("guest"),
 });
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const { user, isLoading: authLoading, signIn } = useAuth();
   
   useEffect(() => {
@@ -88,13 +88,14 @@ const Login = () => {
         throw error;
       }
 
-      // User type can be used for UI routing or session storage if needed
-      localStorage.setItem('userType', values.userType || 'guest');
+      // Save the userType to localStorage
+      localStorage.setItem('userType', values.userType);
+      console.log('User type saved to localStorage:', values.userType);
       
       navigate("/user-profile");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
+      uiToast({
         title: "Login failed",
         description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive",

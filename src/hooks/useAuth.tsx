@@ -10,6 +10,7 @@ type AuthContextType = {
   isLoading: boolean;
   signOut: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, userType: string, fullName: string) => Promise<{ error: AuthError | null }>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -69,10 +70,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       console.log('Sign in successful:', data.user?.id);
+      
+      // Set user type in localStorage if it was passed in signUp
+      if (data.user?.user_metadata?.user_type) {
+        localStorage.setItem('userType', data.user.user_metadata.user_type);
+      }
+      
       toast.success('Logged in successfully');
       return { error: null };
     } catch (err) {
       console.error('Unexpected login error:', err);
+      toast.error('An unexpected error occurred');
+      return { error: err as AuthError };
+    }
+  };
+
+  const signUp = async (email: string, password: string, userType: string, fullName: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            user_type: userType,
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(error.message || 'Sign up failed');
+        return { error };
+      }
+
+      // Store user type in localStorage
+      localStorage.setItem('userType', userType);
+      
+      toast.success('Signed up successfully! Please check your email to confirm your account.');
+      return { error: null };
+    } catch (err) {
       toast.error('An unexpected error occurred');
       return { error: err as AuthError };
     }
@@ -84,6 +120,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Logout error:', error.message);
       toast.error(error.message || 'Sign out failed');
     } else {
+      // Clear user type from localStorage
+      localStorage.removeItem('userType');
       toast.success('Signed out successfully');
     }
   };
@@ -94,6 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoading,
     signOut,
     signIn,
+    signUp,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
