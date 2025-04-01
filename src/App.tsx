@@ -39,7 +39,7 @@ const App = () => {
                 </ProtectedRoute>
               } />
               <Route path="/host-property" element={
-                <ProtectedRoute>
+                <ProtectedRoute hostOnly>
                   <HostProperty />
                 </ProtectedRoute>
               } />

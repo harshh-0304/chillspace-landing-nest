@@ -21,13 +21,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { Mail, Lock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Mail, Lock, UserCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -36,6 +44,7 @@ const loginSchema = z.object({
   password: z.string().min(1, {
     message: "Password is required.",
   }),
+  userType: z.enum(["guest", "host"]).optional(),
 });
 
 const Login = () => {
@@ -43,27 +52,26 @@ const Login = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isLoading: authLoading, signIn } = useAuth();
   
   useEffect(() => {
     // Check if user is already logged in
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
+    if (!authLoading) {
+      if (user) {
         // User is already logged in, redirect to profile page
         navigate("/user-profile");
       } else {
         setAuthChecked(true);
       }
-    };
-    
-    checkAuth();
-  }, [navigate]);
+    }
+  }, [user, authLoading, navigate]);
   
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
+      userType: "guest",
     },
   });
 
@@ -71,22 +79,17 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Sign in the user with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
+      console.log('Login form submitted:', values);
+      
+      // Use the signIn method from useAuth
+      const { error } = await signIn(values.email, values.password);
 
       if (error) {
         throw error;
       }
 
-      console.log("Login successful:", data);
-      
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully logged in.",
-      });
+      // User type can be used for UI routing or session storage if needed
+      localStorage.setItem('userType', values.userType || 'guest');
       
       navigate("/user-profile");
     } catch (error: any) {
@@ -101,7 +104,7 @@ const Login = () => {
     }
   }
 
-  if (!authChecked) {
+  if (authLoading || !authChecked) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <div className="animate-spin h-8 w-8 border-4 border-chillspace-teal border-t-transparent rounded-full"></div>
@@ -164,6 +167,34 @@ const Login = () => {
                             />
                           </div>
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="userType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>I am a</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <div className="relative">
+                              <UserCircle className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                              <SelectTrigger className="pl-10">
+                                <SelectValue placeholder="Select user type" />
+                              </SelectTrigger>
+                            </div>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="guest">Guest</SelectItem>
+                            <SelectItem value="host">Host</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

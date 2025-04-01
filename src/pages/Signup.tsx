@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
@@ -18,19 +17,26 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { User, Mail, Lock, CheckCircle } from "lucide-react";
+import { User, Mail, Lock, CheckCircle, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const signupSchema = z.object({
   name: z.string().min(2, {
@@ -43,6 +49,7 @@ const signupSchema = z.object({
     message: "Password must be at least 8 characters.",
   }),
   confirmPassword: z.string(),
+  userType: z.enum(["guest", "host"]).default("guest"),
   terms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions.",
   }),
@@ -79,6 +86,7 @@ const Signup = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      userType: "guest",
       terms: false,
     },
   });
@@ -87,6 +95,8 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
+      console.log('Signup form submitted:', values);
+      
       // Sign up the user with Supabase
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
@@ -94,6 +104,7 @@ const Signup = () => {
         options: {
           data: {
             full_name: values.name,
+            user_type: values.userType, // Store user type in metadata
           },
         },
       });
@@ -103,6 +114,9 @@ const Signup = () => {
       }
 
       console.log("Signup successful:", data);
+      
+      // Store user type in local storage for immediate use
+      localStorage.setItem('userType', values.userType);
       
       toast({
         title: "Account created!",
@@ -184,6 +198,34 @@ const Signup = () => {
                             />
                           </div>
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="userType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>I want to join as a</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <div className="relative">
+                              <UserCircle className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                              <SelectTrigger className="pl-10">
+                                <SelectValue placeholder="Select user type" />
+                              </SelectTrigger>
+                            </div>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="guest">Guest (I want to book properties)</SelectItem>
+                            <SelectItem value="host">Host (I want to list properties)</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

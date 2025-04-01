@@ -1,16 +1,41 @@
 
-import { Navigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 type ProtectedRouteProps = {
   children: React.ReactNode;
   adminOnly?: boolean;
+  hostOnly?: boolean;
 };
 
-const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ 
+  children, 
+  adminOnly = false,
+  hostOnly = false 
+}: ProtectedRouteProps) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If the route requires specific roles, check if user has them
+    if (user) {
+      const userType = localStorage.getItem('userType') || user.user_metadata?.user_type || 'guest';
+      
+      if (adminOnly && userType !== 'admin') {
+        toast.error("You don't have permission to access this page");
+        navigate('/');
+      }
+      
+      if (hostOnly && userType !== 'host') {
+        toast.error("Only hosts can access this page");
+        navigate('/');
+      }
+    }
+  }, [user, adminOnly, hostOnly, navigate]);
 
   if (isLoading) {
     return (
@@ -23,15 +48,8 @@ const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) =>
 
   // If user is not authenticated, redirect to login
   if (!user) {
+    toast.error("Please log in to access this page");
     return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  // If route requires admin and user is not admin, redirect to home
-  // Note: This is a placeholder. You would need to implement adminOnly check based on your user data
-  if (adminOnly) {
-    // Here you would typically check if the user has admin role
-    // For example: if (!user.isAdmin) {...}
-    // For now, we'll just return the children
   }
 
   return <>{children}</>;
