@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -34,7 +33,7 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Mail, Lock, UserCircle } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth.jsx";
 import { toast } from "sonner";
 
 const loginSchema = z.object({
@@ -56,10 +55,8 @@ const Login = () => {
   const { user, isLoading: authLoading, signIn } = useAuth();
   
   useEffect(() => {
-    // Check if user is already logged in
     if (!authLoading) {
       if (user) {
-        // User is already logged in, redirect to profile page
         navigate("/user-profile");
       } else {
         setAuthChecked(true);
@@ -83,13 +80,11 @@ const Login = () => {
     try {
       console.log('Login form submitted:', values);
       
-      // Important: Pass email and password as separate arguments to signIn
       const { error } = await signIn(values.email, values.password);
 
       if (error) {
         console.log('Login error:', error);
         
-        // Handle specific error cases
         if (error.code === 'email_not_confirmed') {
           setEmailConfirmationMessage(
             "Please check your email to confirm your account before logging in. If you don't see the email, check your spam folder."
@@ -99,7 +94,6 @@ const Login = () => {
         throw error;
       }
 
-      // Save the userType to localStorage
       localStorage.setItem('userType', values.userType);
       console.log('User type saved to localStorage:', values.userType);
       
