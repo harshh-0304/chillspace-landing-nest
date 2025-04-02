@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -33,7 +34,7 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Mail, Lock, UserCircle } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth.jsx";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 const loginSchema = z.object({
