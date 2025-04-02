@@ -50,7 +50,7 @@ const loginSchema = z.object({
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
-  const [emailConfirmationMessage, setEmailConfirmationMessage] = useState<string | null>(null);
+  const [emailConfirmationMessage, setEmailConfirmationMessage] = useState(null);
   const navigate = useNavigate();
   const { toast: uiToast } = useToast();
   const { user, isLoading: authLoading, signIn } = useAuth();
@@ -67,7 +67,7 @@ const Login = () => {
     }
   }, [user, authLoading, navigate]);
   
-  const form = useForm<z.infer<typeof loginSchema>>({
+  const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -76,21 +76,21 @@ const Login = () => {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  async function onSubmit(values) {
     setIsLoading(true);
     setEmailConfirmationMessage(null);
     
     try {
       console.log('Login form submitted:', values);
       
-      // Use the signIn method from useAuth
+      // Fix: Pass email and password directly, not the entire values object
       const { error } = await signIn(values.email, values.password);
 
       if (error) {
-        console.log('Login error code:', (error as any).code);
+        console.log('Login error code:', error.code);
         
         // Handle specific error cases
-        if ((error as any).code === 'email_not_confirmed') {
+        if (error.code === 'email_not_confirmed') {
           setEmailConfirmationMessage(
             "Please check your email to confirm your account before logging in. If you don't see the email, check your spam folder."
           );
@@ -104,7 +104,7 @@ const Login = () => {
       console.log('User type saved to localStorage:', values.userType);
       
       navigate("/user-profile");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login error:", error);
       uiToast({
         title: "Login failed",
