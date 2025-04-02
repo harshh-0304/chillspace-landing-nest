@@ -120,12 +120,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Accept email and password directly, not wrapped in an object
   const signIn = async (email, password) => {
     setLoading(true);
     try {
       console.log('useAuth.jsx: Attempting to sign in with email:', email);
-      // Properly pass email and password to signInWithPassword
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
