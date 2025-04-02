@@ -83,11 +83,11 @@ const Login = () => {
     try {
       console.log('Login form submitted:', values);
       
-      // Fix: Pass email and password directly, not the entire values object
+      // Important: Pass email and password as separate arguments to signIn
       const { error } = await signIn(values.email, values.password);
 
       if (error) {
-        console.log('Login error code:', error.code);
+        console.log('Login error:', error);
         
         // Handle specific error cases
         if (error.code === 'email_not_confirmed') {
@@ -103,6 +103,7 @@ const Login = () => {
       localStorage.setItem('userType', values.userType);
       console.log('User type saved to localStorage:', values.userType);
       
+      toast.success("Login successful! Redirecting...");
       navigate("/user-profile");
     } catch (error) {
       console.error("Login error:", error);
